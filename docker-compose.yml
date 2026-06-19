@@ -1,0 +1,65 @@
+
+
+
+
+version: "3.8"
+
+services:
+  web:
+    image: python:3.11-slim
+    command: sh -c "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8080:8000"
+    volumes:
+      - .:/code
+    working_dir: /code
+    depends_on:
+      - redis
+      - db
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/analytics_db
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=analytics_db
+    ports:
+      - 5435:5432
+  
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    image: python:3.11-slim
+    command: sh -c "pip install -r requirements.txt && celery -A app.celery_app worker --loglevel=info"
+    volumes:
+      - .:/code
+    working_dir: /code
+    depends_on:
+      - redis
+      - db
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/analytics_db
+  
+  celery_beat:
+    image: python:3.11-slim
+    command: sh -c "pip install -r requirements.txt && celery -A app.celery_app beat --loglevel=info"
+    volumes:
+      - .:/code
+    working_dir: /code
+    depends_on:
+      - redis
+      - db
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/analytics_db
+
+volumes:
+  postgres_data:
