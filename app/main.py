@@ -261,3 +261,25 @@ def get_me(
         "email": user.email,
         "joined": user.created_at
     }
+    
+    
+    
+
+
+@app.delete("/contents/{content_id}")
+def delete_content(
+    content_id: int,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    content = db.query(Content).filter(Content.id == content_id).first()
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Content not found"
+        )
+    
+    db.delete(content)
+    db.commit()
+    
+    return {"message": "Content deleted", "content_id": content_id}
