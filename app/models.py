@@ -34,6 +34,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String(100),  nullable=False, unique=True)
+    bio: Mapped[str] = mapped_column(String(255), nullable=True, default=None)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         server_default=func.now()

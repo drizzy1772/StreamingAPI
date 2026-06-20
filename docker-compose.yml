@@ -7,6 +7,8 @@ version: "3.8"
 services:
   web:
     image: python:3.11-slim
+    env_file:
+      - .env
     command: sh -c "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8080:8000"
@@ -37,6 +39,8 @@ services:
 
   celery_worker:
     image: python:3.11-slim
+    env_file:
+      - .env
     command: sh -c "pip install -r requirements.txt && celery -A app.celery_app worker --loglevel=info"
     volumes:
       - .:/code
@@ -50,6 +54,8 @@ services:
   
   celery_beat:
     image: python:3.11-slim
+    env_file:
+      - .env
     command: sh -c "pip install -r requirements.txt && celery -A app.celery_app beat --loglevel=info"
     volumes:
       - .:/code

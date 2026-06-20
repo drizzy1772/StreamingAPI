@@ -19,15 +19,13 @@ from fastapi import FastAPI, status, HTTPException
 from pydantic import BaseModel, Field
 import os
 import redis
-from app.auth import hash_password, verify_password, create_access_token, decode_token
+from app.auth import hash_password, verify_password, create_access_token, decode_token, create_refresh_token
 from app.models import User
 from fastapi.security import  OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from app.database import engine
 from app.models import Base
 
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Social media analytics")
 
@@ -108,14 +106,14 @@ class LoginSchema(BaseModel):
     
 @app.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    username = db.query(User).filter(User.username == form_data.username).first()
-    if not username:
+    user = db.query(User).filter(User.username == form_data.username).first()
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User was not found"
         )
         
-    if not verify_password(form_data.password, username.hashed_password):
+    if not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="password was not verified"
@@ -123,9 +121,35 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         
         
     access_token = create_access_token(
-        data={"sub": username.username},
+        {"sub": user.username},
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    
+    refresh_token = create_refresh_token(
+        {"sub": user.username},
+    )
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer"
+    }
+
+class RefreshSchema(BaseModel):
+    refresh_token: str
+
+@app.post("/refresh")
+def refresh_access_token(data: RefreshSchema):
+    decoded_token = decode_token(data.refresh_token, expected_type="refresh")
+    if decoded_token == None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token"
+        )
+    access_token = create_access_token({"sub": decoded_token})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 
 class ContentSchema(BaseModel):
@@ -262,9 +286,6 @@ def get_me(
         "joined": user.created_at
     }
     
-    
-    
-
 
 @app.delete("/contents/{content_id}")
 def delete_content(
@@ -283,3 +304,12 @@ def delete_content(
     db.commit()
     
     return {"message": "Content deleted", "content_id": content_id}
+
+@app.get("/search")
+def search_for_content(tag: str, db: Session = Depends(get_db)):
+    content = db.query(Content).filter(Content.tags.any(tag)).all()
+    return {
+        "message": "successful",
+        "tag": tag,
+        "results": content
+    }
