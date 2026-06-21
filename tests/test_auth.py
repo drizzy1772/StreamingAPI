@@ -27,7 +27,7 @@ def test_register_duplicate_username(client):
     
 def test_login_success(client):
     client.post("/register", json={"username": "testuser",  "email": "test@test.com", "password": "testpass123"})
-    response = client.post("/login", data={"username": "testuser", "password": "testpass123"})
+    response = client.post("/login", data={"username": "testuser", "email": "test@test.com", "password": "testpass123"})
 
     assert response.status_code == 200
     assert "access_token" in response.json()
