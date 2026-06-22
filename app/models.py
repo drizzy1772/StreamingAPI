@@ -3,11 +3,13 @@
 
 
 from typing import List
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
 import datetime
+
+
 
 class Content(Base):
     __tablename__ = "contents"
@@ -20,12 +22,12 @@ class ActionLog(Base):
     __tablename__ = "action_logs"
     
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(nullable=True)
-    content_id: Mapped[int] = mapped_column(nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
+    content_id: Mapped[int] = mapped_column(ForeignKey("contents.id"), nullable=False)
     action_type: Mapped[str] = mapped_column(String(50), nullable=False)
     duration_seconds: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime.datetime] = mapped_column(
-        server_default=func.now()
+        DateTime, server_default=func.now()
     )
 
 class User(Base):
