@@ -6,10 +6,10 @@ version: "3.8"
 
 services:
   web:
-    image: python:3.11-slim
+    build: .
     env_file:
       - .env
-    command: sh -c "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8080:8000"
     volumes:
@@ -38,10 +38,10 @@ services:
       - "6379:6379"
 
   celery_worker:
-    image: python:3.11-slim
+    build: .
     env_file:
       - .env
-    command: sh -c "pip install -r requirements.txt && celery -A app.celery_app worker --loglevel=info"
+    command: celery -A app.celery_app worker --loglevel=info
     volumes:
       - .:/code
     working_dir: /code
@@ -53,10 +53,10 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/analytics_db
   
   celery_beat:
-    image: python:3.11-slim
+    build: .
     env_file:
       - .env
-    command: sh -c "pip install -r requirements.txt && celery -A app.celery_app beat --loglevel=info"
+    command: celery -A app.celery_app beat --loglevel=info
     volumes:
       - .:/code
     working_dir: /code
