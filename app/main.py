@@ -7,6 +7,10 @@
 
 
 
+
+
+from sqlalchemy import text
+from app.database import SessionLocal
 from app.auth import get_current_user
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
@@ -313,3 +317,93 @@ def search_for_content(tag: str, db: Session = Depends(get_db)):
         "tag": tag,
         "results": content
     }
+    
+@app.get("/health")
+def health_check():
+    try:
+        redis_client.ping()
+        redis_status = "available"
+    except Exception:
+        redis_status = "unavailable"
+    
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        db_status = "available"
+    except Exception:
+        db_status = "unavailable"
+
+    return {
+        "status": "ok",
+        "redis": redis_status,
+        "database": db_status
+    }
+
+
+
+
+@app.get("/users/me/history")
+def get_user_history(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.username == current_user).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="username was not found"
+        )
+
+    action_logs = db.query(ActionLog).filter(ActionLog.user_id == user.id).all()
+    
+    return {
+        "user_id": user.id,
+        "username": user.username,
+        "total_actions": len(action_logs),
+        "history": [
+            {
+                "content_id": log.content_id,
+                "action_type": log.action_type,
+                "duration_seconds": log.duration_seconds,
+                "created_at": log.created_at
+            }
+            for log in action_logs
+        ]
+    }
+
+
+
+
+
+@app.get("/contents/{content_id}")
+def get_content(
+    content_id: int,
+    db: Session = Depends(get_db)
+):
+    content = db.query(Content).filter(Content.id == content_id).first()
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="content was not found"
+        )
+    total_views = db.query(ActionLog).filter(ActionLog.content_id == content_id).count()
+    avg_duration = db.query(
+        func.avg(ActionLog.duration_seconds)
+    ).filter(ActionLog.content_id == content_id).scalar()
+
+    total_likes = db.query(ActionLog).filter(
+        ActionLog.content_id == content_id,
+        ActionLog.action_type == "like"
+    ).count()
+
+    return {
+        "id": content.id,
+        "title": content.title,
+        "tags": content.tags,
+        "total_views": total_views,
+        "avg_duration_seconds": avg_duration,
+        "total_likes": total_likes
+    }
+
+
