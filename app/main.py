@@ -15,24 +15,23 @@ from app.auth import get_current_user
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from fastapi import Depends
-from app.models import Content, ActionLog
-from app.database import get_db
 import json
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends, APIRouter
 from pydantic import BaseModel, Field
 import os
 import redis
 from app.auth import hash_password, verify_password, create_access_token, decode_token, create_refresh_token
 from app.models import User
 from fastapi.security import  OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from app.models import Content, ActionLog
 
-from app.database import engine
+from app.database import engine, get_db
 from app.models import Base
-
+from fastapi import APIRouter
 
 app = FastAPI(title="Social media analytics")
 
+router = APIRouter(prefix='/api/v1')
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
@@ -48,7 +47,7 @@ def read_root():
     return {"status": "perfect", "message": "Server was successfully turned on"}
     
 
-@app.get("/analytics/{content_id}")
+@router.get("/analytics/{content_id}")
 def get_analytics(
     content_id: int,
     db: Session = Depends(get_db),
@@ -160,7 +159,7 @@ class ContentSchema(BaseModel):
     title: str = Field(..., example="My simple code")
     tags: list[str] = Field(..., example=["python", "fastapi"])
 
-@app.post("/contents", status_code=status.HTTP_201_CREATED)
+@router.post("/contents", status_code=status.HTTP_201_CREATED)
 def create_content(data: ContentSchema, db: Session = Depends(get_db)):
     new_content = Content(title=data.title, tags=data.tags)
     db.add(new_content)
@@ -169,7 +168,7 @@ def create_content(data: ContentSchema, db: Session = Depends(get_db)):
     
     return {"message": "Content created", "content_id": new_content.id}
 
-@app.get("/feed/{user_id}")
+@router.get("/feed/{user_id}")
 def get_feed(
     user_id: int,
     page: int = 1,
@@ -214,7 +213,7 @@ def get_feed(
         "feed": paginated
     }
 
-@app.get("/trending")
+@router.get("/trending")
 def get_trending(db: Session = Depends(get_db),
                  current_user: str = Depends(get_current_user)):
     since = datetime.utcnow() - timedelta(hours=24)
@@ -239,7 +238,7 @@ def get_trending(db: Session = Depends(get_db),
     }    
 
 
-@app.post("/analytics/track", status_code=status.HTTP_202_ACCEPTED)
+@router.post("/analytics/track", status_code=status.HTTP_202_ACCEPTED)
 async def track_action(data: UserActionSchema):
     try:
         redis_key = f"rate_limit:{data.user_id}:profile"
@@ -271,7 +270,7 @@ async def track_action(data: UserActionSchema):
 
 
 
-@app.get("/users/me")
+@router.get("/users/me")
 def get_me(
     current_user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -291,7 +290,7 @@ def get_me(
     }
     
 
-@app.delete("/contents/{content_id}")
+@router.delete("/contents/{content_id}")
 def delete_content(
     content_id: int,
     current_user: str = Depends(get_current_user),
@@ -309,7 +308,7 @@ def delete_content(
     
     return {"message": "Content deleted", "content_id": content_id}
 
-@app.get("/search")
+@router.get("/search")
 def search_for_content(tag: str, db: Session = Depends(get_db)):
     content = db.query(Content).filter(Content.tags.any(tag)).all()
     return {
@@ -343,7 +342,7 @@ def health_check():
 
 
 
-@app.get("/users/me/history")
+@router.get("/users/me/history")
 def get_user_history(
     current_user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -376,7 +375,7 @@ def get_user_history(
 
 
 
-@app.get("/contents/{content_id}")
+@router.get("/contents/{content_id}")
 def get_content(
     content_id: int,
     db: Session = Depends(get_db)
@@ -406,4 +405,4 @@ def get_content(
         "total_likes": total_likes
     }
 
-
+app.include_router(router)
