@@ -406,3 +406,38 @@ def get_content(
     }
 
 app.include_router(router)
+
+
+class ContentUpdateSchema(BaseModel):
+    title: str | None = Field(None, example="update title")
+    tags: list[str] | None = Field(None, example=["python", "fastapi"])
+
+@router.patch("/contents/{content_id}")
+def update_content(
+    content_id: int,
+    data: ContentUpdateSchema,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    content = db.query(Content).filter(Content.id == content_id).first()
+    if not content:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="content was not found"
+        )
+    
+    if data.title is not None:
+        content.title = data.title
+    
+    if data.tags is not None:
+        content.tags = data.tags
+    
+    db.commit()
+    db.refresh(content)
+    
+    return {
+        "message": "Content updated",
+        "id": content.id,
+        "title": content.title,
+        "tags": content.tags
+    }
