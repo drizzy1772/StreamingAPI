@@ -86,3 +86,11 @@ def test_full_content_endpoint(client):
     
     get_after_delete = client.get(f"/api/v1/contents/{content_id}")
     assert get_after_delete.status_code == 404
+    
+def test_health_check_endpoint(client):
+    response = client.get("/health")
+    
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+    assert "redis" in response.json()
+    assert "database" in response.json()

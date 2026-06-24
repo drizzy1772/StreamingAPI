@@ -9,8 +9,12 @@ from celery import Celery
 import redis as redis_lib
 from app.database import SessionLocal
 from app.models import ActionLog
+from app.logger import get_logger
+
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+
+logger = get_logger(__name__)
 
 celery_app = Celery(
     "worker",
@@ -28,13 +32,14 @@ celery_app.conf.beat_schedule = {
 
 @celery_app.task
 def flush_logs_to_db():
-    redis_url = redis_lib.Redis.from_url(REDIS_URL, decode_responses=True)
+    redis_client = redis_lib.Redis.from_url(REDIS_URL, decode_responses=True)
 
-    all_items = redis_url.lrange("user_actions", 0, -1)
+    all_items = redis_client.lrange("user_actions", 0, -1)
     
-    redis_url.delete("user_actions")
+    redis_client.delete("user_actions")
 
     if not all_items:
+        logger.info("No logs to process")
         return "No logs to process"
     
     parsed_items = [json.loads(item) for item in all_items]
@@ -51,8 +56,10 @@ def flush_logs_to_db():
             )
             db.add(log_entry)
         db.commit()
+        logger.info(f"Successfully flushed {len(parsed_items)} logs")
     except Exception as e:
         db.rollback()
+        logger.error(f"Failed to flush logs: {str(e)}")
         raise e
     finally:
         db.close()

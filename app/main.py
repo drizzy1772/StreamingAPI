@@ -8,7 +8,7 @@
 
 
 
-
+from app.logger import get_logger
 from sqlalchemy import text
 from app.database import SessionLocal
 from app.auth import get_current_user
@@ -35,6 +35,8 @@ router = APIRouter(prefix='/api/v1')
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
+
+logger = get_logger(__name__)
 
 class UserActionSchema(BaseModel):
     user_id: int = Field(..., example=12)
@@ -332,7 +334,7 @@ def health_check():
         db_status = "available"
     except Exception:
         db_status = "unavailable"
-
+        logger.info(f"Health check - redis: {redis_status}, db: {db_status}")
     return {
         "status": "ok",
         "redis": redis_status,
