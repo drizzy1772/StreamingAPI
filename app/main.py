@@ -441,3 +441,5 @@ def update_content(
         "title": content.title,
         "tags": content.tags
     }
+
+app.include_router(router)
