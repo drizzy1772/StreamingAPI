@@ -20,16 +20,27 @@ A REST API for content tracking, user management, and analytics built with FastA
 ## Features
 
 JWT authentication with access & refresh tokens
+
 User registration, login, and profile
+
 Content CRUD with tag support
+
 Personalized feed based on user history & preferred tags
+
 Trending content (last 24h)
+
 Tag-based search
+
 Per-content analytics (views, likes, avg duration)
+
 User action history
+
 Async action logging with rate limiting (Redis → Celery → Postgres, flushed every 60s)
+
 Health check endpoint
+
 JSON structured logging
+
 Fully Dockerized (web, db, redis, celery worker, celery beat)
 
 ## Prerequisites
