@@ -134,6 +134,12 @@ Authorization: Bearer <your_token>
 | GET | `/api/v1/search?tag=` | No |
 | GET | `/health` | No |
 
+## API Docs
+Swagger UI available at: http://localhost:8080/docs
+
+<img width="1352" height="911" alt="Screenshot 2026-06-25 at 22-27-53 Social media analytics - Swagger UI" src="https://github.com/user-attachments/assets/1246b277-f250-4de7-9941-7b80718e5d31" />
+
+
 ## Testing
 
 ```bash
