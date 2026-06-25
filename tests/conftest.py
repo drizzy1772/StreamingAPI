@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
+from unittest.mock import patch, MagicMock
 
 from app.main import app
 from app.database import Base, get_db
@@ -39,7 +40,17 @@ app.dependency_overrides[get_db] = override_get_db
 def client():
     Base.metadata.create_all(engine)
     
-    with TestClient(app) as test_client:
-        yield test_client
-
+    mock_redis = MagicMock()
+    mock_redis.get.return_value = None
+    mock_redis.incr.return_value = 1
+    mock_redis.expire.return_value = True
+    mock_redis.lpush.return_value = 1
+    mock_redis.lrange.return_value = []
+    mock_redis.delete.return_value = 1
+    mock_redis.ping.return_value = True
+    
+    with patch('app.main.redis_client', mock_redis):
+        with TestClient(app) as test_client:
+            yield test_client
+    
 Base.metadata.drop_all(bind=engine)
