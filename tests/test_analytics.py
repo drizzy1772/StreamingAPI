@@ -5,11 +5,21 @@
 
 
 
+from unittest.mock import patch
 
-
-
-
+def mock_push(key, value):
+    print(f"Record was noted in Redis! Key: {key}, Values: {value}")
+    return 1
+    
 def test_track_action_(client):
+    with patch("redis.Redis.from_url") as mock_redis_factory:
+        
+        mock_client = mock_redis_factory.return_value
+        
+        mock_client.lpush.side_effect = mock_push
+        mock_client.rpush.side_effect = mock_push
+        
+        
     response = client.post("/api/v1/analytics/track", json={
         "user_id": 1,
         "content_id": 1,
