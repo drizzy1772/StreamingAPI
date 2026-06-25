@@ -17,7 +17,20 @@ A REST API for content tracking, user management, and analytics built with FastA
 ## Image Introduction
 <img width="699" height="489" alt="Untitled Diagram drawio(15)" src="https://github.com/user-attachments/assets/680cf04e-3d04-4c84-83c6-c44d7074dbce" />
 
+## Features
 
+JWT authentication with access & refresh tokens
+User registration, login, and profile
+Content CRUD with tag support
+Personalized feed based on user history & preferred tags
+Trending content (last 24h)
+Tag-based search
+Per-content analytics (views, likes, avg duration)
+User action history
+Async action logging with rate limiting (Redis → Celery → Postgres, flushed every 60s)
+Health check endpoint
+JSON structured logging
+Fully Dockerized (web, db, redis, celery worker, celery beat)
 
 ## Prerequisites
 
