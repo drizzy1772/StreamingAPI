@@ -174,3 +174,12 @@ content-analytics-api/
 ├── seed.py
 └── tests.db
 ```
+
+
+## Author
+
+This project is developed by Drizzy1772.
+
+## License
+
+This project is licensed under MIT License.
