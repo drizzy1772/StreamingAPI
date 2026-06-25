@@ -16,7 +16,7 @@ def test_track_action_(client):
         "action_type": "like",
         "duration_seconds": 30
     })
-    assert response.status_code == 202
+    assert response.status_code == 202, f"mistake server {response.text}"
     assert response.json()["status"] == "queued"
 
 def test_get_user_profile(client):
