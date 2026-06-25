@@ -100,6 +100,9 @@ Use the token in subsequent requests:
 ```bash
 Authorization: Bearer <your_token>
 ```
+## API Scheme
+<img width="1031" height="668" alt="Untitled(3)" src="https://github.com/user-attachments/assets/f134d819-dea2-47ea-9e80-689d926be6f4" />
+
 
 ## API Endpoints
 
