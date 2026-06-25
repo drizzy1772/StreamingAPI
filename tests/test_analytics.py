@@ -20,14 +20,14 @@ def test_track_action_(client):
         mock_client.rpush.side_effect = mock_push
         
         
-    response = client.post("/api/v1/analytics/track", json={
-        "user_id": 1,
-        "content_id": 1,
-        "action_type": "like",
-        "duration_seconds": 30
-    })
-    assert response.status_code == 202, f"mistake server {response.text}"
-    assert response.json()["status"] == "queued"
+        response = client.post("/api/v1/analytics/track", json={
+            "user_id": 1,
+            "content_id": 1,
+            "action_type": "like",
+            "duration_seconds": 30
+        })
+        assert response.status_code == 202, f"mistake server {response.text}"
+        assert response.json()["status"] == "queued"
 
 def test_get_user_profile(client):
     client.post("/register", json={
