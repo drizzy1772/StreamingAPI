@@ -178,6 +178,9 @@ content-analytics-api/
 ```
 
 
+## Link on API:
+## https://streamingapi-et0c.onrender.com/docs
+
 ## Author
 
 This project is developed by Drizzy1772.
