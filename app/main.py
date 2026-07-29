@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 import json
-from fastapi import FastAPI, status, HTTPException, Depends, APIRouter
+from fastapi import FastAPI, status, HTTPException, Depends, APIRouter, Request
 from pydantic import BaseModel, Field
 import os
 import redis
@@ -29,7 +29,24 @@ from app.database import engine, get_db
 from app.models import Base
 from fastapi import APIRouter
 
-app = FastAPI(title="Social media analytics")
+from contextlib import asynccontextmanager
+from aiokafka import AIOKafkaProducer
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    producer = AIOKafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
+    await producer.start()
+    
+    app.state.producer = producer
+    
+    yield
+    
+    await producer.stop()
+
+
+app = FastAPI(title="Social media analytics", lifespan=lifespan)
+
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 
 router = APIRouter(prefix='/api/v1')
 
@@ -37,6 +54,9 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 redis_client = redis.Redis.from_url(REDIS_URL, decode_responses=True)
 
 logger = get_logger(__name__)
+
+
+
 
 class UserActionSchema(BaseModel):
     user_id: int = Field(..., example=12)
@@ -47,7 +67,8 @@ class UserActionSchema(BaseModel):
 @app.get("/")
 def read_root():
     return {"status": "perfect", "message": "Server was successfully turned on"}
-    
+
+
 
 @router.get("/analytics/{content_id}")
 def get_analytics(
@@ -241,7 +262,7 @@ def get_trending(db: Session = Depends(get_db),
 
 
 @router.post("/analytics/track", status_code=status.HTTP_202_ACCEPTED)
-async def track_action(data: UserActionSchema):
+async def track_action(data: UserActionSchema, request: Request):
     try:
         redis_key = f"rate_limit:{data.user_id}:profile"
         count = redis_client.get(redis_key)
@@ -257,6 +278,14 @@ async def track_action(data: UserActionSchema):
 
         json_string = data.model_dump_json()
         redis_client.lpush("user_actions", json_string)
+        byte_data = json_string.encode('utf-8')
+        
+        producer = request.app.state.producer
+        
+        try:
+            await producer.send_and_wait("content_events", value=byte_data)
+        except Exception as kafka_error:
+            logger.error(f"Mistake was happened {kafka_error}")
         
         return {
             "status": "queued",
@@ -372,8 +401,6 @@ def get_user_history(
             for log in action_logs
         ]
     }
-
-
 
 
 
