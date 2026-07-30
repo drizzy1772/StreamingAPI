@@ -78,7 +78,8 @@ jobs:
             SECRET_KEY: ${{ secrets.SECRET_KEY }}
             KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
-          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           sleep 10
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 3
           curl -f http://localhost:8000/ || exit 1
       
