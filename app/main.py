@@ -32,17 +32,26 @@ from fastapi import APIRouter
 from contextlib import asynccontextmanager
 from aiokafka import AIOKafkaProducer
 
+import logging
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     producer = AIOKafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
-    await producer.start()
     
     app.state.producer = producer
     
+    try:    
+        await producer.start()
+        logging.info("Kafka connected")    
+    except Exception as e:
+        logging.warning(f"Kafka connection bypassed: {e}")
+    
     yield
     
-    await producer.stop()
-
+    try:
+        await producer.stop()
+    except Exception:
+        pass
 
 app = FastAPI(title="Social media analytics", lifespan=lifespan)
 
@@ -448,7 +457,6 @@ def get_content(
         "total_likes": total_likes
     }
 
-app.include_router(router)
 
 
 class ContentUpdateSchema(BaseModel):
