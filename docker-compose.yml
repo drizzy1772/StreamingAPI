@@ -24,7 +24,7 @@ services:
         condition: service_started
 
     environment:
-      - KAFKA_BOOTSTRAP_SERVER=kafka:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/analytics_db
   db:
@@ -94,6 +94,23 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+  kafka_consumer:
+    build: .
+    env_file:
+      - .env
+    command: python -m app.kafka_consumer
+    volumes:
+      - .:/code
+    working_dir: /code
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - REDIS_URL=redis://redis:6379/0
+
 
 volumes:
   postgres_data:

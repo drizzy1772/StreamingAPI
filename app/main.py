@@ -319,6 +319,20 @@ def get_me(
         "email": user.email,
         "joined": user.created_at
     }
+
+@router.get("/trending/realtime")
+def get_trending_realtime():
+    result = redis_client.zrevrange("trending_realtime", 0, 9, withscores = True)
+    
+    
+    return {
+        "message": "successfull",
+        "trending": [
+            {"content_id": content_id, "score": score}
+            for content_id, score in result
+        ]
+    }
+
     
 
 @router.delete("/contents/{content_id}")
