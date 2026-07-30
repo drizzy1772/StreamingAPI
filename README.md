@@ -2,7 +2,7 @@
 [README.md](https://github.com/user-attachments/files/29341786/README.md)
 # Content Analytics API
 
-A REST API for content tracking, user management, and analytics built with FastAPI, Redis, and Celery.
+A REST API for content tracking, user management, and event analytics built with FastAPI, Kafka, Redis, and Celery.
 
 ## Tech Stack
 
@@ -11,6 +11,7 @@ A REST API for content tracking, user management, and analytics built with FastA
 - **PostgreSQL**
 - **Redis**
 - **Celery**
+- **Apache Kafka (aiokafka)**
 - **JWT**
 - **Alembic**
 - **pytest**
@@ -39,7 +40,7 @@ A REST API for content tracking, user management, and analytics built with FastA
 
 * User action history
 
-* Async action logging with rate limiting (Redis → Celery → Postgres, flushed every 60s)
+* Async event streaming and logging with rate limiting (FastAPI → Kafka / Redis → Celery → Postgres)
 
 * Health check endpoint
 
@@ -68,6 +69,7 @@ Edit `.env`:
 SECRET_KEY=your-secret-key-here
 DATABASE_URL=postgresql://postgres:postgres@db:5432/analytics_db
 REDIS_URL=redis://redis:6379/0
+KAFKA_BOOTSTRAP_SERVERS=kafka:9092
 ```
 
 3. **Start the stack**
@@ -180,6 +182,8 @@ content-analytics-api/
 
 ## Link on API:
 ## https://streamingapi-et0c.onrender.com/docs
+
+> **Note:** The live deployment is hosted on Render's free tier. For this demo environment, the Kafka message broker connection is gracefully bypassed. To experience the full event-streaming capabilities via Kafka, please run the project locally using Docker Compose.
 
 ## Author
 
