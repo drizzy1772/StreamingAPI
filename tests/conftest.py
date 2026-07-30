@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 from app.main import app
 from app.database import Base, get_db
@@ -49,8 +49,12 @@ def client():
     mock_redis.delete.return_value = 1
     mock_redis.ping.return_value = True
     
-    with patch('app.main.redis_client', mock_redis):
+    
+    mock_producer = AsyncMock()
+    
+    with patch('app.main.redis_client', mock_redis), \
+        patch('app.main.AIOKafkaProducer', return_value=mock_producer):
         with TestClient(app) as test_client:
             yield test_client
     
-Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=engine)
