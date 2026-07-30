@@ -63,6 +63,10 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h localhost -U postgres -c "CREATE DATABASE test_db;"
+      
+      - name: Debug Kafka container
+        run: |
+          nc -zv localhost 9092 && echo "Port is open" || echo "Port is NOT open"
 
       - name: Run tests
         env:
