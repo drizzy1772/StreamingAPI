@@ -33,6 +33,23 @@ jobs:
         ports:
           - 6379:6379
 
+      zookeeper:
+        image: bitnami/zookeeper:latest
+        env:
+          ALLOW_ANONYMOUS_LOGIN: "YES"
+        ports:
+          - 2181:2181
+
+      kafka:
+        image: bitnami/kafka:latest
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          ALLOW_PLAINTEXT_LISTENER: "yes"
+          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+        ports:
+          - 9092:9092
+
+
     steps:
       - name: Check code
         uses: actions/checkout@v3
@@ -54,6 +71,7 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: pytest tests/ -v
 
       - name: Start FastAPI and run health check
@@ -61,8 +79,9 @@ jobs:
             DATABASE_URL: postgresql://postgres:postgres@localhost:5432/analytics_db
             REDIS_URL: redis://localhost:6379/0
             SECRET_KEY: ${{ secrets.SECRET_KEY }}
-            
+            KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
           uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           sleep 3
           curl -f http://localhost:8000/ || exit 1
+      
