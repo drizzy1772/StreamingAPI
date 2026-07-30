@@ -33,23 +33,20 @@ jobs:
         ports:
           - 6379:6379
 
-      zookeeper:
-        image: bitnami/zookeeper:latest
-        env:
-          ALLOW_ANONYMOUS_LOGIN: "YES"
-        ports:
-          - 2181:2181
-
       kafka:
-        image: bitnami/kafka:latest
+        image: apache/kafka:3.7.0
         env:
-          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-          ALLOW_PLAINTEXT_LISTENER: "yes"
-          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_NODE_ID: 1
+          KAFKA_PROCESS_ROLES: broker,controller
+          KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093"
+          KAFKA_LISTENERS: "PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093"
+          KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+          KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+          CLUSTER_ID: "U4jap6-ZTBidfX3wv3vwVg"
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
         ports:
           - 9092:9092
-
-
     steps:
       - name: Check code
         uses: actions/checkout@v3
