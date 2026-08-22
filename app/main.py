@@ -7,7 +7,7 @@
 
 
 
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.logger import get_logger
 from sqlalchemy import text
 from app.database import SessionLocal
@@ -34,6 +34,8 @@ from aiokafka import AIOKafkaProducer
 
 import logging
 
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     producer = AIOKafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
@@ -56,6 +58,17 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Social media analytics", lifespan=lifespan)
 
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 router = APIRouter(prefix='/api/v1')
 
