@@ -60,7 +60,7 @@ app = FastAPI(title="Social media analytics", lifespan=lifespan)
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 
 
-origins = ["*"]
+origins = ["http://127.0.0.1:5500"]
 
 app.add_middleware(
     CORSMiddleware,
