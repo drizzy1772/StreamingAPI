@@ -22,6 +22,42 @@ async function fetchHealth() {
     }
 }
 
+async function register() {
+  const url = "http://127.0.0.1:8080/register";
+
+  try {
+    const username = document.querySelector("#username").value;
+    const email = document.querySelector("#email").value;
+    const password = document.querySelector("#password").value;
+
+    const loginResponse = await fetch (url, {
+      method: "POST",
+      headers: { "Content-type": "application/json"},
+      body: JSON.stringify({
+        username: username,
+        email: email,
+        password: password,
+      }),
+    });
+
+    if (!loginResponse.ok) {
+      throw new Error(`Response status ${loginResponse.status}`);
+    }
+
+    const data = await loginResponse.json();
+    console.log(data);
+
+    const resultDiv = document.getElementById("token-result")
+    resultDiv.textContent = `Successful: ${JSON.stringify(data)}`;
+
+  } catch(error) {
+    console.error(error.message);
+
+    const resultDiv = document.getElementById("token-result");
+    resultDiv.textContent = error.message;
+
+  }
+}
 
 async function login() {
     const url = "http://127.0.0.1:8080/login";
@@ -38,7 +74,12 @@ async function login() {
       })
 
       const data = await loginResponse.json();
-      const token = data.token;
+
+      if (!loginResponse.ok) {
+        throw new Error(`Error! ${loginResponse.status} - ${JSON.stringify(data)}`);
+      }
+
+      const token = data.access_token;
       console.log(data.access_token);
 
       localStorage.setItem("token", data.access_token);
@@ -48,6 +89,9 @@ async function login() {
       resultDiv.textContent = `Token: ${token}`;
     } catch(error) {
         console.error(error.message);
+
+        const resultDiv = document.getElementById("token-result");
+        resultDiv.textContent = error.message;
   }
 }
 
