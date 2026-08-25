@@ -47,14 +47,12 @@ async function register() {
     const data = await loginResponse.json();
     console.log(data);
 
-    const resultDiv = document.getElementById("token-result")
-    resultDiv.textContent = `Successful: ${JSON.stringify(data)}`;
+    showAlert(`User registered: ${data.message} successfully`, "success");
 
   } catch(error) {
     console.error(error.message);
 
-    const resultDiv = document.getElementById("token-result");
-    resultDiv.textContent = error.message;
+    showAlert(error.message, "error");
 
   }
 }
@@ -76,23 +74,31 @@ async function login() {
       const data = await loginResponse.json();
 
       if (!loginResponse.ok) {
-        throw new Error(`Error! ${loginResponse.status} - ${JSON.stringify(data)}`);
+          throw new Error(`Error! ${loginResponse.status} - ${JSON.stringify(data)}`);
       }
 
       const token = data.access_token;
+      showAlert(`Token ${token}`, "success");
       console.log(data.access_token);
 
       localStorage.setItem("token", data.access_token);
-
-      const resultDiv = document.getElementById("token-result")
-
-      resultDiv.textContent = `Token: ${token}`;
+      
     } catch(error) {
         console.error(error.message);
-
-        const resultDiv = document.getElementById("token-result");
-        resultDiv.textContent = error.message;
+        showAlert(error.message, "error")
   }
+}
+
+function showAlert(message, type) {
+  const resultDiv = document.getElementById("token-result");
+  if (type === "success") {
+    resultDiv.textContent = message;
+    resultDiv.className = "text-green-400 bg-green-900 p-3 rounded-lg";
+  }
+  if (type === "error") {
+    resultDiv.textContent = message;
+    resultDiv.className = "text-red-400 bg-red-900 p-3 rounded-lg";
+    }
 }
 
 async function fetchTrending() {

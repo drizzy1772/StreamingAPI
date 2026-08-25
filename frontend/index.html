@@ -4,15 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <input id="username"/>
-    <input id="email"/>
-    <input id="password" type="password"/>
-    <button onclick="login()">Login</button>
-    <button onclick="register()">Register</button>
-    <div id="token-result"></div>
-    <div id="content"></div>
-    <script src="app.js"></script>
-</body>
-</html>
+    <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center"></body>
+    <div class="bg-gray-800 rounded-xl p-8 w-full max-w-md flex flex-col gap-4">
+        <h1 class="text-2xl font-bold text-center">StreamingAPI</h1>
+
+        <input id="username" placeholder="Username"
+        class="bg-gray-700 rounded-lg px-4 py-2 w-full outline-none"/>
+
+        <input id="email" placeholder="Email"
+        class="bg-gray-700 rounded-lg px-4 py-2 w-full outline-none"/>
+
+        <input id="password" placeholder="Password"
+        class="bg-gray-700 rounded-lg px-4 py-2 w-full outline-none"/>
+
+
+        <div class="flex gap-3">
+            <button onclick="login()"
+            class="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 w-full">Login</button>
+        </div>
+        
+        <button onclick="register()"
+        class="bg-green-500 hover:bg-green-600 text-white rounded-lg px-4 py-2 w-full">Register</button>
+        <div id="token-result"></div>
+        <div id="content"></div>
+        <script src="app.js"></script>
+        </div>
+    </body>
+    </html>
