@@ -95,6 +95,7 @@ async function login() {
     document.getElementById("feed-section").classList.remove("hidden");
     
     getCurrentUser();
+    fetchFeed();
 
     } catch(error) {
         console.error(error.message);
@@ -200,6 +201,37 @@ async function getCurrentUser() {
     console.error("Request failed: ", error2.message);
 
   }
+}
+
+async function fetchFeed() {
+  const getUser = localStorage.getItem("user_id");
+  const getTokens = localStorage.getItem("token");
+
+  if (!getUser || !getTokens) {
+    console.log("User id and token are missing.");
+    return;
+  }
+   
+  const url = `http://127.0.0.1:8080/api/v1/feed/${getUser}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${getTokens}`,
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Response.status: ${response.status}`);
+    }
+    const data3 = await response.json();
+    console.log(data3);
+
+  } catch(error) {
+    console.error("Error fetching feed: ", error.message);
+  }
+
 }
 
 //fetchHealth();
