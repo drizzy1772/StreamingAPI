@@ -91,7 +91,8 @@ async function login() {
     resultDiv2.classList.remove("text-green-400", "bg-green-900", "p-3", "rounded-lg");
 
     localStorage.setItem("token", data.access_token);
-    document.getElementById("copy-btn").classList.remove("hidden");
+    document.getElementById("auth-section").classList.add("hidden");
+    document.getElementById("feed-section").classList.remove("hidden");
 
     } catch(error) {
         console.error(error.message);
