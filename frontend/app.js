@@ -200,4 +200,4 @@ async function getCurrentUser() {
   }
 }
 
-fetchHealth();
+//fetchHealth();
