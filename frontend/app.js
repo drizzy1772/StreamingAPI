@@ -58,6 +58,10 @@ async function register() {
 }
 
 async function login() {
+    const resultDiv = document.querySelector("#token-result");
+    resultDiv.innerHTML = "";
+    resultDiv.classList.remove("text-green-400", "bg-green-900", "text-red-400", "bg-red-900", "p-3", "rounded-lg");
+
     const url = "http://127.0.0.1:8080/login";
 
     try {
@@ -78,27 +82,44 @@ async function login() {
       }
 
       const token = data.access_token;
-      showAlert(`Token ${token}`, "success");
-      console.log(data.access_token);
 
-      localStorage.setItem("token", data.access_token);
+      showAlert(`Token ${token}`, "success");
+
       
+    const resultDiv2 = document.querySelector("#token-result");
+    resultDiv2.innerHTML = '';
+    resultDiv2.classList.remove("text-green-400", "bg-green-900", "p-3", "rounded-lg");
+
+    localStorage.setItem("token", data.access_token);
+    document.getElementById("copy-btn").classList.remove("hidden");
+
     } catch(error) {
         console.error(error.message);
         showAlert(error.message, "error")
   }
 }
 
+function copyToken() {
+  const code = localStorage.getItem("token");
+  navigator.clipboard.writeText(code);
+  const btn = document.getElementById("copy-btn");
+  btn.textContent = "Copied!";
+  setTimeout(() => btn.textContent = "Copy token", 2000);
+}
+
+
 function showAlert(message, type) {
   const resultDiv = document.getElementById("token-result");
   if (type === "success") {
     resultDiv.textContent = message;
-    resultDiv.className = "text-green-400 bg-green-900 p-3 rounded-lg";
+    resultDiv.classList.remove("text-red-400", "bg-red-900", "p-3", "rounded-lg");
+    resultDiv.classList.add("text-green-400", "bg-green-900", "p-3", "rounded-lg");
   }
   if (type === "error") {
     resultDiv.textContent = message;
-    resultDiv.className = "text-red-400 bg-red-900 p-3 rounded-lg";
-    }
+    resultDiv.classList.remove("text-green-400", "bg-green-900", "p-3", "rounded-lg");
+    resultDiv.classList.add("text-red-400", "bg-red-900", "p-3", "rounded-lg");
+  }
 }
 
 async function fetchTrending() {
@@ -109,7 +130,6 @@ async function fetchTrending() {
   console.log("No token, login first");
   return;
 }
-
   try {
     const response = await fetch(url, {
       method: "GET",
