@@ -151,4 +151,33 @@ async function fetchTrending() {
 
   }
 }
+
+async function getCurrentUser() {
+  const url = "http://127.0.0.1:8080/api/v1/users/me";
+  const getToken = localStorage.getItem("token");
+  
+  if (!getToken) {
+    console.log("No token.");
+    return;
+}
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${getToken}`,
+      }
+    });
+
+    const data2 = await response.json();
+    console.log(data2);
+
+    document.getElementById("content").innerHTML = JSON.stringify(data2);
+    return data2
+
+  } catch(error2) {
+    console.error("Request failed: ", error2.message);
+    
+  }
+}
+
 fetchHealth();
