@@ -191,6 +191,8 @@ async function getCurrentUser() {
     const data2 = await response.json();
     console.log(data2);
 
+    localStorage.setItem("user_id", data2.user_id);
+
     document.getElementById("nav_username").textContent = `Hello, ${data2.username}`;
     return data2
 
