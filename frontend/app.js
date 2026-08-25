@@ -93,11 +93,31 @@ async function login() {
     localStorage.setItem("token", data.access_token);
     document.getElementById("auth-section").classList.add("hidden");
     document.getElementById("feed-section").classList.remove("hidden");
+    
+    getCurrentUser();
 
     } catch(error) {
         console.error(error.message);
         showAlert(error.message, "error")
   }
+}
+
+function logout() {
+
+  localStorage.removeItem("token");
+  
+  const resultAddClass = document.getElementById("feed-section");
+  resultAddClass.classList.add("hidden");
+
+  const resultAddAuth = document.getElementById("auth-section");
+  resultAddAuth.classList.remove("hidden");
+
+  const resultAddNav = document.getElementById("nav_username");
+  resultAddNav.textContent = "Loading user...";
+
+  const resultToken = document.getElementById("token-result");
+  resultToken.innerHTML = "";
+
 }
 
 function copyToken() {
@@ -171,12 +191,12 @@ async function getCurrentUser() {
     const data2 = await response.json();
     console.log(data2);
 
-    document.getElementById("content").innerHTML = JSON.stringify(data2);
+    document.getElementById("nav_username").textContent = `Hello, ${data2.username}`;
     return data2
 
   } catch(error2) {
     console.error("Request failed: ", error2.message);
-    
+
   }
 }
 
