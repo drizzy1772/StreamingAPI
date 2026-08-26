@@ -228,6 +228,32 @@ async function fetchFeed() {
     const data3 = await response.json();
     console.log(data3);
 
+    const feedCartsContainer = document.getElementById("feed-cards");
+    feedCartsContainer.innerHTML = "";
+
+    data3.forEach(item => {
+
+      feedCartsContainer.innerHTML += `
+        <div class="bg-gray-800 p-5 rounded-lg shadow-md flex flex-col gap-3">
+            <h3 class="text-xl font-bold text-white">${item.title}</h3>
+
+            <p class="text-sm text-gray-400">
+              <span class="font-semibold text-gray-300">Tags:</span> ${item.tags}
+            </p>
+
+            <div class="flex items-center gap-6 text-sm text-gray-300">
+                <span>Views: ${item.views}</span>
+                <span>Likes: ${item.likes}</span>
+            </div>
+
+            <button class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-md w-32 mt-2 transition">
+              Tracker
+            </button>
+
+        </div>
+      `;
+    });
+
   } catch(error) {
     console.error("Error fetching feed: ", error.message);
   }
