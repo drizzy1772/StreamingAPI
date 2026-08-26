@@ -246,7 +246,7 @@ async function fetchFeed() {
                 <span>Likes: ${item.likes}</span>
             </div>
 
-            <button class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-md w-32 mt-2 transition">
+            <button onclick="trackAction(${item.id})" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-md w-32 mt-2 transition">
               Tracker
             </button>
 
@@ -256,6 +256,49 @@ async function fetchFeed() {
 
   } catch(error) {
     console.error("Error fetching feed: ", error.message);
+  }
+
+}
+
+async function createContent() {
+  const getTitle = document.getElementById("new-title").value;
+  const getTags = document.getElementById("new-tags").value;
+
+  const Token = localStorage.getItem("token");
+
+  if (!Token) {
+    console.log("Token was not founded");
+    return;
+  }
+
+  const url = "http://127.0.0.1:8080/api/v1/contents";
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Token}`,
+      },
+      body: JSON.stringify({
+        title: getTitle,
+        tags: getTags,
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Response status ${response.status}`);
+    }
+    const result4 = await response.json();
+    console.log(result4);
+
+    document.getElementById("new-title").value = "";
+    document.getElementById("new-tags").value = "";
+
+    fetchFeed();
+
+  } catch(error) {
+    console.error("Error creating post ", error.message);
   }
 
 }
