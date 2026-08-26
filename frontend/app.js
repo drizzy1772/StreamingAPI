@@ -294,7 +294,7 @@ async function createContent() {
 
     document.getElementById("new-title").value = "";
     document.getElementById("new-tags").value = "";
-
+    
     fetchFeed();
 
   } catch(error) {
@@ -302,5 +302,42 @@ async function createContent() {
   }
 
 }
+
+async function trackAction(contentId) {
+  const Token8 = localStorage.getItem("token");
+
+  if (!Token8) {
+    console.log("Token was not founded");
+    return;
+  }
+
+  const url = "http://127.0.0.1:8080/api/v1/analytics/track";
+
+  try {
+    const response1 = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${Token8}`,
+      },
+      body: JSON.stringify({
+        content_id: contentId,
+        event_type: "click",
+      })
+    });
+
+    if (!response1.ok) {
+      throw new Error(`Response status: ${response1.status}`);
+    }
+    const result5 = await response1.json();
+    console.log("Tracked successfully:", result5);
+
+    fetchFeed();
+  } catch(error) {
+    console.error("Error tracking post:", error.message);
+  }
+}
+
+
 
 //fetchHealth();
