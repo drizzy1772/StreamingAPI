@@ -6,8 +6,9 @@ async function fetchHealth() {
     const url = "http://127.0.0.1:8080/health";
     try {
         const response = await fetch(url);
+
         if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
+          throw new Error(`Response status: ${response.status}`);
         }
         const result = await response.json();
         console.log(result);
@@ -229,25 +230,32 @@ async function fetchFeed() {
     console.log(data3);
 
     const feedCartsContainer = document.getElementById("feed-cards");
+    
     feedCartsContainer.innerHTML = "";
 
-    data3.forEach(item => {
-
+    data3.feed.forEach(item => {
+      const stats = getRandomStats();
       feedCartsContainer.innerHTML += `
-        <div class="bg-gray-800 p-5 rounded-lg shadow-md flex flex-col gap-3">
-            <h3 class="text-xl font-bold text-white">${item.title}</h3>
+        <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
+            <h3 class="text-lg font-medium tracking-tight text-white">${item.title}</h3>
+          <div class="flex flex-wrap gap-2">
+            ${item.tags.map(tag=> `
+              <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
+                    ${tag}
+              </span>
+              `).join("")}
+          </div>
 
-            <p class="text-sm text-gray-400">
-              <span class="font-semibold text-gray-300">Tags:</span> ${item.tags}
-            </p>
-
-            <div class="flex items-center gap-6 text-sm text-gray-300">
-                <span>Views: ${item.views}</span>
-                <span>Likes: ${item.likes}</span>
+            <div class="flex items-center gap-3 text-xs text-white">
+                <span>Views ${stats.views}</span>
+                <span class="text-white/10">•</span>
+                <span>Likes ${stats.likes}</span>
+                <span class="text-white/10">•</span>
+                <span>Comments ${stats.comments}</span>
             </div>
-
-            <button onclick="trackAction(${item.id})" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1.5 px-4 rounded-md w-32 mt-2 transition">
-              Tracker
+            <div class="border-t border-white/10 pt-4">
+            <button onclick="trackAction(${item.id})" class="bg-white text-black font-medium py-2 px-4 rounded-lg w-fit hover:bg-gray-200 transition-all duration-200">
+              Live Stream
             </button>
 
         </div>
@@ -282,19 +290,22 @@ async function createContent() {
       },
       body: JSON.stringify({
         title: getTitle,
-        tags: getTags,
+        tags: getTags.split(",").map(tag => tag.trim()),
       })
     });
 
     if (!response.ok) {
+      const errorDetails = await response.json();
+      console.error("FastAPI Error Details: ", errorDetails);
       throw new Error(`Response status ${response.status}`);
     }
+
     const result4 = await response.json();
     console.log(result4);
 
     document.getElementById("new-title").value = "";
     document.getElementById("new-tags").value = "";
-    
+
     fetchFeed();
 
   } catch(error) {
@@ -303,8 +314,9 @@ async function createContent() {
 
 }
 
-async function trackAction(contentId) {
+async function trackAction(contentId, eventType = "click") {
   const Token8 = localStorage.getItem("token");
+  const getUserId = localStorage.getItem("user_id");
 
   if (!Token8) {
     console.log("Token was not founded");
@@ -312,6 +324,15 @@ async function trackAction(contentId) {
   }
 
   const url = "http://127.0.0.1:8080/api/v1/analytics/track";
+
+  const payload = {
+    content_id: contentId,
+    action_type: eventType,
+  };
+
+  if (eventType === "comment" && commentText) {
+    payload.comment = commentText;
+  }
 
   try {
     const response1 = await fetch(url, {
@@ -322,11 +343,14 @@ async function trackAction(contentId) {
       },
       body: JSON.stringify({
         content_id: contentId,
-        event_type: "click",
+        user_id: Number(getUserId),
+        action_type: eventType,
       })
     });
 
     if (!response1.ok) {
+      const errorDetails = await response1.json();
+      console.error("Fastapi analytics Error details: ", errorDetails);
       throw new Error(`Response status: ${response1.status}`);
     }
     const result5 = await response1.json();
@@ -338,6 +362,20 @@ async function trackAction(contentId) {
   }
 }
 
+function startLiveStream(contentId) {
+  console.log(`Start live stream for ${contentId}`);
 
+  setInterval(async () => {
+    await trackAction(contentId);
+  }, 3000);
+}
+
+function getRandomStats() {
+  return {
+    views: Math.floor(Math.random() * 4901) + 100,
+    likes: Math.floor(Math.random() * 491) + 10,
+    comments: Math.floor(Math.random() * 101),
+  };
+}
 
 //fetchHealth();
