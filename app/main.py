@@ -64,7 +64,8 @@ origins = ["http://127.0.0.1:5500"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://127.0.0.1:5500"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -121,7 +122,10 @@ class RegisterSchema(BaseModel):
     username: str = Field(..., example="bohdan")
     email: str = Field(..., example="test@gmail.com")
     password: str = Field(..., example='strongpass098')
-    
+
+@app.options("/register")
+def options_register():
+    return {}
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
 def register(data: RegisterSchema, db: Session = Depends(get_db)):

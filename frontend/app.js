@@ -93,7 +93,7 @@ async function login() {
 
     localStorage.setItem("token", data.access_token);
     document.getElementById("auth-section").classList.add("hidden");
-    document.getElementById("feed-section").classList.remove("hidden");
+    document.getElementById("interests-section").classList.remove("hidden");
     
     getCurrentUser();
     fetchFeed();
@@ -237,11 +237,12 @@ async function fetchFeed() {
       const stats = getRandomStats();
       feedCartsContainer.innerHTML += `
         <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
+
             <h3 class="text-lg font-medium tracking-tight text-white">${item.title}</h3>
           <div class="flex flex-wrap gap-2">
             ${item.tags.map(tag=> `
               <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
-                    ${tag}
+                    #${tag}
               </span>
               `).join("")}
           </div>
@@ -376,6 +377,105 @@ function getRandomStats() {
     likes: Math.floor(Math.random() * 491) + 10,
     comments: Math.floor(Math.random() * 101),
   };
+}
+
+
+
+
+function saveInterests() {
+  if (selectedInterests.length === 0) {
+    console.log("Choose exactly 3 interests");
+    return;
+  }
+  localStorage.setItem("interests", JSON.stringify(selectedInterests));
+
+  document.getElementById("feed-section").classList.remove("hidden");
+  document.getElementById("interests-section").classList.add("hidden");
+  
+
+  getCurrentUser();
+  fetchDevFeed();
+
+}
+
+let selectedInterests = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  const interestButtons = document.querySelectorAll(".interest-btn");
+
+  interestButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const interest = button.textContent.trim();
+
+      if (selectedInterests.includes(interest)) {
+
+        selectedInterests = selectedInterests.filter(item => item !== interest);
+        button.classList.remove("bg-white", "text-black", "-translate-y-1", "shadow-lg");
+        return;
+      }
+
+      if (selectedInterests.length >= 3) return;
+
+      selectedInterests.push(interest);
+      button.classList.add("bg-white", "text-black", "-translate-y-1", "shadow-lg");
+      console.log(selectedInterests);
+    });
+  });
+});
+
+async function fetchDevFeed() {
+  const interests = JSON.parse(localStorage.getItem("interests"));
+
+  const tag = interests[0].toLowerCase();
+
+  const url = `https://dev.to/api/articles?tag=${tag}&per_page=10`;
+  const response = await fetch(url);
+  const articles = await response.json();
+
+  const feedCartsContainer = document.getElementById("feed-cards");
+  feedCartsContainer.innerHTML = "";
+
+  articles.forEach(article => {
+    feedCartsContainer.innerHTML += `
+        <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
+
+            <h3 class="text-lg font-medium text-white">
+              ${article.title}
+            </h3>
+            
+            <div class="flex flex-wrap gap-2">
+              ${article.tag_list.map(tag => `
+                <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
+                  #${tag}
+                </span>
+                `).join("")}
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>${article.user.name}</span>
+              <span>${article.reading_time_minutes} min read</span>
+            </div>
+
+            <div class="text-xs text-gray-400">
+                ${article.positive_reactions_count} reactions
+            </div>
+            
+
+            <div class="border-t border-white/10 pt-4 flex justify-end">
+            
+              <a
+                href="${article.url}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="bg-white text-black text-xs font-medium px-2.5 py-1.5 rounded-md hover:bg-gray-200 transition w-fit">
+                Click
+            </a>
+        
+        </div>
+    </div>
+    `;
+  });
+
 }
 
 //fetchHealth();
