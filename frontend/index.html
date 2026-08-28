@@ -107,6 +107,13 @@
                 </p>
             </div>
 
+        <div class="flex gap-2">
+            <button
+                onclick="showSaved()"
+                class="border border-white/10 text-sm text-white px-4 py-2 rounded-lg hover:bg-white/5 hover:border-white/20 transition-all duration-200">
+                Saved
+            </button>
+
             <button
                 onclick="logout()"
                 class="border border-white/10 text-sm text-white px-4 py-2 rounded-lg hover:bg-white/5 hover:border-white/20 transition-all duration-200">
@@ -114,7 +121,7 @@
             </button>
             
         </div>
-            
+    </div>
             <div class="w-full max-w-5xl bg-white/[0.02] border border-white/10 p-6 rounded-2xl mb-8 flex flex-col gap-4 mt-6">
                 <h3 class="text-lg font-medium tracking-tight text-white">Create new post</h3>
                 <input id="new-title" placeholder="Post title" class="bg-black border border-white/10 rounded-lg px-4 py-2.5 w-full outline-none text-white placeholder:text-gray-500 focus:border-white/30 transition"/>
@@ -127,7 +134,21 @@
 
         </div>
         
+        <div id="saved-section" class="hidden">
+
+            <h2 class="text-3xl font-semibold tracking-tight">
+                Saved Articles
+            </h2>   
+            
+            <button
+                onclick="showFeed()">
+                Back to feed
+            </button>
+
+            <div id="saved-cards" class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        </div>
         <script src="app.js"></script>
-        
+    
     </body>
     </html>

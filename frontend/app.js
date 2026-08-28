@@ -517,4 +517,82 @@ function saveArticle(articleId, button) {
   button.classList.add("bg-yellow-400");
 }
 
+async function showSaved() {
+  const getSaved = JSON.parse(localStorage.getItem("savedArticles")) || [];
+
+  console.log(getSaved);
+
+  document.getElementById("feed-section").classList.add("hidden");
+  document.getElementById("saved-section").classList.remove("hidden");
+
+
+  if (getSaved.length === 0) {
+    console.log("No saved articles");
+    return;
+  }
+
+  const savedCards = document.getElementById("saved-cards")
+  savedCards.innerHTML = "";
+  
+
+  for (const articleId of getSaved) {
+    const url = `https://dev.to/api/articles/${articleId}`; 
+
+    const response = await fetch(url);
+
+    const article = await response.json();
+
+    console.log(article);
+
+    savedCards.innerHTML += `
+    <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
+
+        ${article.cover_image ? `
+            <img
+                src="${article.cover_image}"
+                class="w-full h-48 object-cover rounded-xl"
+            >
+        ` : ''}
+
+        <h3 class="text-lg font-medium text-white">
+            ${article.title}
+        </h3>
+
+        <div class="flex flex-wrap gap-2">
+            ${article.tag_list.map(tag => `
+                <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
+                    #${tag}
+                </span>
+            `).join("")}
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-gray-400">
+            <span>${article.user.name}</span>
+            <span>${article.reading_time_minutes} min read</span>
+        </div>
+
+        <div class="border-t border-white/10 pt-4">
+
+            <a
+                href="${article.url}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition w-fit"
+            >
+                Click
+            </a>
+
+        </div>
+
+    </div>
+`;
+      
+  }
+}
+
+function showFeed() {
+  document.getElementById("saved-section").classList.add("hidden");
+  document.getElementById("feed-section").classList.remove("hidden");
+}
+
 //fetchHealth();
