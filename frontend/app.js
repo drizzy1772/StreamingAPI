@@ -402,8 +402,23 @@ let selectedInterests = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   const interestButtons = document.querySelectorAll(".interest-btn");
+  const savedInterests = JSON.parse(localStorage.getItem("interests")) || [];
+  selectedInterests = savedInterests;
+
+  if (savedInterests.length === 3) {
+    document.getElementById("auth-section").classList.add("hidden");
+    document.getElementById("feed-section").classList.remove("hidden");
+    document.getElementById("interests-section").classList.add("hidden");
+    fetchDevFeed();
+  }
+
 
   interestButtons.forEach(button => {
+
+    if (selectedInterests.includes(button.textContent.trim())) {
+      button.classList.add("bg-white", "text-black", "-translate-y-1", "shadow-lg");
+    }
+
     button.addEventListener("click", () => {
       const interest = button.textContent.trim();
 
