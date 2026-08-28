@@ -125,7 +125,7 @@ class RegisterSchema(BaseModel):
 
 @app.options("/register")
 def options_register():
-    return {}
+    return 
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
 def register(data: RegisterSchema, db: Session = Depends(get_db)):
