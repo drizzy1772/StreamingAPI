@@ -395,7 +395,6 @@ function saveInterests() {
 
   getCurrentUser();
   fetchDevFeed();
-
 }
 
 let selectedInterests = [];
@@ -411,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("interests-section").classList.add("hidden");
     fetchDevFeed();
     getCurrentUser();
+    renderSearchHistory();
   }
 
 
@@ -650,6 +650,8 @@ async function searchArticles() {
     return;
   }
 
+  saveSearchHistory(query);
+
   const url = `https://dev.to/api/articles?tag=${query}&per_page=10`
 
   const responseURL = await fetch(url);
@@ -731,6 +733,37 @@ function shareArticle(url, button) {
 
   button.textContent = "Copied!"
   setTimeout(() => button.textContent = "Share", 2000);
+
+}
+
+function saveSearchHistory(query) {
+  let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
+
+  history = history.filter(tag => tag != query);
+
+  history.unshift(query);
+
+  history = history.slice(0, 5);
+
+  localStorage.setItem("searchHistory", JSON.stringify(history));
+
+  renderSearchHistory();
+
+}
+
+function renderSearchHistory() {
+  const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+  const container = document.getElementById("search-history");
+
+  container.innerHTML = "";
+
+  history.forEach(tag => {
+
+    container.innerHTML += `
+      <button onclick="document.getElementById('search-query').value = '${tag}'; searchArticles()">${tag}</button>
+
+      `;
+});
 
 }
 
