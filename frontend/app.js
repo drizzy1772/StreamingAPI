@@ -452,8 +452,10 @@ async function fetchDevFeed() {
 
   articles.forEach(article => {
     const parsing = JSON.parse(localStorage.getItem("savedArticles")) || [];
-
     console.log(parsing.includes(article.id));
+    
+    const isSaved = parsing.includes(article.id);
+
 
     feedCartsContainer.innerHTML += `
         <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
@@ -494,8 +496,8 @@ async function fetchDevFeed() {
 
             <button onclick="saveArticle(${article.id}, this)"
 
-            class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition-colors duration-300">
-              Save
+            class="${isSaved ? 'bg-yellow-400' : 'bg-white'} text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition-all duration-200">
+            ${isSaved ? 'Saved': 'Save'}
             </button>
         </div>
     </div>
@@ -505,16 +507,30 @@ async function fetchDevFeed() {
 }
 
 function saveArticle(articleId, button) {
-  const parsing = JSON.parse(localStorage.getItem("savedArticles")) || [];
+  let parsing = JSON.parse(localStorage.getItem("savedArticles")) || [];
   if (parsing.includes(articleId)) {
-    return;
+    parsing = parsing.filter(item => item != articleId);
+
+    button.textContent = "Save";
+    button.classList.remove("bg-yellow-400");
+    button.classList.add("bg-white");
+  } else {
+    parsing.push(articleId);
+
+    button.textContent = "Saved";
+    button.classList.remove("bg-white");
+    button.classList.add("bg-yellow-400");
+
+    button.classList.add("scale-110");
+
+    setTimeout(() => {
+      button.classList.remove("scale-110")
+    }, 150);
   }
-  parsing.push(articleId);
 
   localStorage.setItem("savedArticles", JSON.stringify(parsing));
-  button.textContent = "Saved";
-  button.classList.remove("bg-white");
-  button.classList.add("bg-yellow-400");
+
+
 }
 
 async function showSaved() {
@@ -544,6 +560,10 @@ async function showSaved() {
 
     console.log(article);
 
+    console.log(article.tag_list);
+    console.log(typeof article.tag_list);
+    console.log(Array.isArray(article.tag_list));
+
     savedCards.innerHTML += `
     <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
 
@@ -559,11 +579,13 @@ async function showSaved() {
         </h3>
 
         <div class="flex flex-wrap gap-2">
-            ${article.tag_list.map(tag => `
-                <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
-                    #${tag}
-                </span>
-            `).join("")}
+            ${article.tag_list
+              .split(",")
+              .map(tag => `
+              <span>
+                #${tag.trim()}
+              </span>`
+                ).join("")}
         </div>
 
         <div class="flex items-center justify-between text-xs text-gray-400">
@@ -577,10 +599,14 @@ async function showSaved() {
                 href="${article.url}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition w-fit"
-            >
+                class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition w-fit">
                 Click
             </a>
+
+
+            <button onclick="removeArticle(${article.id}, this)">
+              Remove
+            </button>
 
         </div>
 
@@ -593,6 +619,22 @@ async function showSaved() {
 function showFeed() {
   document.getElementById("saved-section").classList.add("hidden");
   document.getElementById("feed-section").classList.remove("hidden");
+}
+
+function removeArticle(articleId, button) {
+  let removeSaved = JSON.parse(localStorage.getItem("savedArticles")) || [];
+  removeSaved = removeSaved.filter(item => item !== articleId);
+
+  localStorage.setItem(
+    "savedArticles",
+    JSON.stringify(removeSaved),
+  );
+  
+  button.textContent = "Save";
+  button.classList.remove("bg-yellow-400");
+  button.classList.add("bg-white");
+
+  button.onclick = () => saveArticle(articleId, button);
 }
 
 //fetchHealth();
