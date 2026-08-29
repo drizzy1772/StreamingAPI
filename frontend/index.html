@@ -123,11 +123,12 @@
         </div>
     </div>
             <div class="w-full max-w-5xl bg-white/[0.02] border border-white/10 p-6 rounded-2xl mb-8 flex flex-col gap-4 mt-6">
-                <h3 class="text-lg font-medium tracking-tight text-white">Create new post</h3>
-                <input id="new-title" placeholder="Post title" class="bg-black border border-white/10 rounded-lg px-4 py-2.5 w-full outline-none text-white placeholder:text-gray-500 focus:border-white/30 transition"/>
-                <input id="new-tags" placeholder="Tags" class="bg-black border border-white/10 rounded-lg px-4 py-2.5 w-full outline-none text-white placeholder:text-gray-500 focus:border-white/30 transition"/>
-                <button onclick="createContent()" class="bg-white text-black font-medium py-2 px-5 rounded-lg hover:bg-gray-200 transition-all duration-200 w-full md:w-auto self-end">
-                    Create Post
+
+                <h3 class="text-lg font-medium tracking-tight text-white">Search Articles</h3>
+
+                <input id="search-query" placeholder="Keywords or Tags" class="bg-black border border-white/10 rounded-lg px-4 py-2.5 w-full outline-none text-white placeholder:text-gray-500 focus:border-white/30 transition"/>
+                <button onclick="searchArticles()" class="bg-white text-black font-medium py-2 px-5 rounded-lg hover:bg-gray-200 transition-all duration-200 w-full md:w-auto self-end">
+                    Search
                 </button>
             </div>
             <div id="feed-cards" class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4"></div>

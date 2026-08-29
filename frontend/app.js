@@ -410,6 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("feed-section").classList.remove("hidden");
     document.getElementById("interests-section").classList.add("hidden");
     fetchDevFeed();
+    getCurrentUser();
   }
 
 
@@ -484,7 +485,7 @@ async function fetchDevFeed() {
             </div>
             
 
-            <div class="border-t border-white/10 pt-4 flex justify-between">
+            <div class="border-t border-white/10 pt-4 flex justify-start gap-3">
             
               <a
                 href="${article.url}"
@@ -494,11 +495,16 @@ async function fetchDevFeed() {
                 Click
             </a>
 
-            <button onclick="saveArticle(${article.id}, this)"
-
-            class="${isSaved ? 'bg-yellow-400' : 'bg-white'} text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition-all duration-200">
+              <button onclick="saveArticle(${article.id}, this)"
+              class="${isSaved ? 'bg-yellow-400' : 'bg-white'} text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition-all duration-200">
             ${isSaved ? 'Saved': 'Save'}
-            </button>
+              </button>
+
+              <button onclick="shareArticle('${article.url}', this)"
+              class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition-all duration-200 ml-auto">
+                Share
+              </button>
+            </div>
         </div>
     </div>
     `;
@@ -565,7 +571,7 @@ async function showSaved() {
     console.log(Array.isArray(article.tag_list));
 
     savedCards.innerHTML += `
-    <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
+    <div class="article-card bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
 
         ${article.cover_image ? `
             <img
@@ -593,7 +599,7 @@ async function showSaved() {
             <span>${article.reading_time_minutes} min read</span>
         </div>
 
-        <div class="border-t border-white/10 pt-4">
+        <div class="border-t border-white/10 pt-4 flex justify-start gap-3">
 
             <a
                 href="${article.url}"
@@ -604,7 +610,8 @@ async function showSaved() {
             </a>
 
 
-            <button onclick="removeArticle(${article.id}, this)">
+            <button onclick="removeArticle(${article.id}, this)"
+            class="bg-red-500 text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-red-700 transition-all duration-200">
               Remove
             </button>
 
@@ -629,12 +636,102 @@ function removeArticle(articleId, button) {
     "savedArticles",
     JSON.stringify(removeSaved),
   );
-  
-  button.textContent = "Save";
-  button.classList.remove("bg-yellow-400");
-  button.classList.add("bg-white");
 
-  button.onclick = () => saveArticle(articleId, button);
+  const card = button.closest(".article-card");
+  card.remove();
+
+}
+
+async function searchArticles() {
+  const query = document.getElementById("search-query").value.toLowerCase();
+
+  if (!query) {
+    console.log("Enter a search query");
+    return;
+  }
+
+  const url = `https://dev.to/api/articles?tag=${query}&per_page=10`
+
+  const responseURL = await fetch(url);
+  const articlesURL = await responseURL.json();
+
+  console.log("What happened: ", articlesURL, typeof articlesURL, Array.isArray(articlesURL));
+  const feedCartsContainer = document.getElementById("feed-cards");
+  feedCartsContainer.innerHTML = "";
+
+  if (articlesURL.length === 0) {
+    feedCartsContainer.innerHTML = '<p class="text-gray-400 text-center col-span-2">No articles found for this tag</p>';
+    return;
+  }
+
+
+
+  articlesURL.forEach(article => {
+    const parsing = JSON.parse(localStorage.getItem("savedArticles")) || [];
+    console.log(parsing.includes(article.id));
+    
+    const isSaved = parsing.includes(article.id);
+
+
+    feedCartsContainer.innerHTML += `
+        <div class="bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
+
+            ${article.cover_image ? `<img src="${article.cover_image}" class="w-full h-48 object-cover rounded-xl">` : ''}
+
+            <h3 class="text-lg font-medium text-white">
+              ${article.title}
+            </h3>
+            
+            <div class="flex flex-wrap gap-2">
+              ${article.tag_list.map(tag => `
+                <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
+                  #${tag}
+                </span>
+                `).join("")}
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>${article.user.name}</span>
+              <span>${article.reading_time_minutes} min read</span>
+            </div>
+
+            <div class="text-xs text-gray-400">
+                ${article.positive_reactions_count} reactions
+            </div>
+            
+
+            <div class="border-t border-white/10 pt-4 flex justify-start gap-3">
+            
+              <a
+                href="${article.url}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition w-fit">
+                Click
+            </a>
+
+            <button onclick="saveArticle(${article.id}, this)"
+            class="${isSaved ? 'bg-yellow-400' : 'bg-white'} text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition-all duration-200">
+            ${isSaved ? 'Saved': 'Save'}
+            </button>
+
+            <button onclick="shareArticle('${article.url}', this)"
+            class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition-all duration-200 ml-auto">
+              Share
+            </button>
+        </div>
+    </div>
+    `;
+  });
+
+}
+
+function shareArticle(url, button) {
+  navigator.clipboard.writeText(url);
+
+  button.textContent = "Copied!"
+  setTimeout(() => button.textContent = "Share", 2000);
+
 }
 
 //fetchHealth();
