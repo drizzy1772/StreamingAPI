@@ -134,6 +134,10 @@
                 <div id="search-history" class="flex flex-wrap gap-2">
                 </div>
 
+                <input id="title-filter" placeholder="Filter loaded results by title"
+                class="bg-black border border-white/10 rounded-lg px-4 py-2.5 w-full outline-none text-white placeholder:text-gray-500 focus:border-white/30 transition";
+                oninput="filterByTitle()"/>
+
             </div>
             <div id="feed-cards" class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 

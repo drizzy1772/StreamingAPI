@@ -767,4 +767,22 @@ function renderSearchHistory() {
 
 }
 
+
+function filterByTitle() {
+  const filterText = document.querySelector("#title-filter").value.toLowerCase();
+
+  const cards = document.querySelectorAll("#feed-cards > div");
+
+  cards.forEach(card => {
+    const title = card.querySelector("h3").textContent.toLowerCase();
+
+    if (title.includes(filterText)) {
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+  })
+
+
+}
 //fetchHealth();
