@@ -93,10 +93,32 @@ async function login() {
 
     localStorage.setItem("token", data.access_token);
     document.getElementById("auth-section").classList.add("hidden");
-    document.getElementById("interests-section").classList.remove("hidden");
     
-    getCurrentUser();
-    fetchFeed();
+
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return;
+    }
+
+    const userIDS = user.user_id;
+    const storageKey = `user_${userIDS}_interests`;
+
+    const savedInterests = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+    selectedInterests = savedInterests;
+
+    if (savedInterests.length === 3) {
+      document.getElementById("auth-section").classList.add("hidden");
+      document.getElementById("interests-section").classList.add("hidden");
+      document.getElementById("feed-section").classList.remove("hidden");
+      
+      fetchDevFeed();
+
+      renderSearchHistory();
+    } else {
+      document.getElementById("interests-section").classList.remove("hidden");
+    }
 
     } catch(error) {
         console.error(error.message);
@@ -105,20 +127,26 @@ async function login() {
 }
 
 function logout() {
-
   localStorage.removeItem("token");
+  localStorage.removeItem("user_id");
   
   const resultAddClass = document.getElementById("feed-section");
   resultAddClass.classList.add("hidden");
 
+  const resultAddInterest = document.getElementById("interests-section");
+  resultAddInterest.classList.add("hidden");
+  
   const resultAddAuth = document.getElementById("auth-section");
   resultAddAuth.classList.remove("hidden");
+
 
   const resultAddNav = document.getElementById("nav_username");
   resultAddNav.textContent = "Loading user...";
 
   const resultToken = document.getElementById("token-result");
   resultToken.innerHTML = "";
+
+  selectedInterests = [];
 
 }
 
@@ -189,14 +217,25 @@ async function getCurrentUser() {
         "Authorization": `Bearer ${getToken}`,
       }
     });
-
+    
     const data2 = await response.json();
+
+
+    if (!response.ok) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      return;
+    }
+    
+
     console.log(data2);
+    console.log(data2.user_id);
 
     localStorage.setItem("user_id", data2.user_id);
 
     document.getElementById("nav_username").textContent = `Hello, ${data2.username}`;
     return data2
+
 
   } catch(error2) {
     console.error("Request failed: ", error2.message);
@@ -387,7 +426,18 @@ function saveInterests() {
     console.log("Choose exactly 3 interests");
     return;
   }
-  localStorage.setItem("interests", JSON.stringify(selectedInterests));
+
+  const userID = localStorage.getItem("user_id");
+  
+  console.log(userID);
+
+  if (userID) {
+    const storageKey = `user_${userID}_interests`;
+
+    localStorage.setItem(storageKey, JSON.stringify(selectedInterests));
+  } else {
+    console.error("User ID not found in localStorage");
+  }
 
   document.getElementById("feed-section").classList.remove("hidden");
   document.getElementById("interests-section").classList.add("hidden");
@@ -399,25 +449,43 @@ function saveInterests() {
 
 let selectedInterests = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const interestButtons = document.querySelectorAll(".interest-btn");
-  const savedInterests = JSON.parse(localStorage.getItem("interests")) || [];
-  selectedInterests = savedInterests;
+  const token = localStorage.getItem("token");
 
-  if (savedInterests.length === 3) {
-    document.getElementById("auth-section").classList.add("hidden");
-    document.getElementById("feed-section").classList.remove("hidden");
-    document.getElementById("interests-section").classList.add("hidden");
-    fetchDevFeed();
-    getCurrentUser();
-    renderSearchHistory();
+  let user;
+  if (token) {
+    user = await getCurrentUser();
   }
 
+  if (user) {
+      const userID = user.user_id;
+      const storageKey = `user_${userID}_interests`;
 
+      const savedInterests = 
+          JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      selectedInterests = savedInterests;
+
+
+      if (savedInterests.length === 3) {
+        document.getElementById("auth-section").classList.add("hidden");
+        document.getElementById("feed-section").classList.remove("hidden");
+        document.getElementById("interests-section").classList.add("hidden");
+
+        fetchDevFeed();
+        renderSearchHistory();
+      }
+  }
   interestButtons.forEach(button => {
 
     if (selectedInterests.includes(button.textContent.trim())) {
-      button.classList.add("bg-white", "text-black", "-translate-y-1", "shadow-lg");
+      button.classList.add(
+        "bg-white",
+        "text-black",
+        "-translate-y-1",
+         "shadow-lg"
+      );
     }
 
     button.addEventListener("click", () => {
@@ -434,14 +502,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       selectedInterests.push(interest);
       button.classList.add("bg-white", "text-black", "-translate-y-1", "shadow-lg");
+
       console.log(selectedInterests);
+      });
     });
   });
-});
+
 
 async function fetchDevFeed() {
-  const interests = JSON.parse(localStorage.getItem("interests"));
-
+  const userID = localStorage.getItem("user_id");
+  const storageKey = `user_${userID}_interests`;
+  const interests = JSON.parse(localStorage.getItem(storageKey)) || [];
   const tag = interests[0].toLowerCase();
 
   const url = `https://dev.to/api/articles?tag=${tag}&per_page=10`;
@@ -585,10 +656,9 @@ async function showSaved() {
         </h3>
 
         <div class="flex flex-wrap gap-2">
-            ${article.tag_list
-              .split(",")
+            ${(Array.isArray(article.tag_list) ? article.tag_list : article.tag_list.split(","))
               .map(tag => `
-              <span>
+              <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
                 #${tag.trim()}
               </span>`
                 ).join("")}
@@ -640,6 +710,16 @@ function removeArticle(articleId, button) {
   const card = button.closest(".article-card");
   card.remove();
 
+  const feedSaveButton = Array.from(
+    document.querySelectorAll('#feed-cards button[onclick^="saveArticle("]')
+  ).find(button => button.getAttribute("onclick").startsWith(`saveArticle(${articleId},`));
+
+  if (feedSaveButton) {
+    feedSaveButton.textContent = "Save";
+    feedSaveButton.classList.remove("bg-yellow-400");
+    feedSaveButton.classList.add("bg-white");
+  }
+
 }
 
 async function searchArticles() {
@@ -652,10 +732,16 @@ async function searchArticles() {
 
   saveSearchHistory(query);
 
-  const url = `https://dev.to/api/articles?tag=${query}&per_page=10`
+  const tags = query.split(",").map(tag => tag.trim());
 
-  const responseURL = await fetch(url);
-  const articlesURL = await responseURL.json();
+  const responses = tags.map(tag => fetch(`https://dev.to/api/articles?tag=${tag}&per_page=10`));
+
+  const responsesResolved = await Promise.all(responses);
+
+  const articlesArrays = await Promise.all(
+    responsesResolved.map(r => r.json()));
+
+  const articlesURL = articlesArrays.flat();
 
   console.log("What happened: ", articlesURL, typeof articlesURL, Array.isArray(articlesURL));
   const feedCartsContainer = document.getElementById("feed-cards");
@@ -769,12 +855,16 @@ function renderSearchHistory() {
 
 
 function filterByTitle() {
+  console.log("filterByTitle called")
   const filterText = document.querySelector("#title-filter").value.toLowerCase();
+  console.log("filterText", filterText);
 
   const cards = document.querySelectorAll("#feed-cards > div");
+  console.log("cards found:", cards.length);
 
   cards.forEach(card => {
     const title = card.querySelector("h3").textContent.toLowerCase();
+    console.log("card title: ", title);
 
     if (title.includes(filterText)) {
       card.style.display = "block";
