@@ -30,6 +30,18 @@ async function register() {
     const username = document.querySelector("#username").value;
     const email = document.querySelector("#email").value;
     const password = document.querySelector("#password").value;
+    const emailRegex = /^[^\s@]+@gmail\.com$/;
+    const passwordPattern = /^[a-zA-Z0-9_!@#$%^&*()\-+=]+$/;
+
+    if (!emailRegex.test(email)) {
+      showAlert("Email must end with @gmail.com", "error");
+      return;
+    }
+
+    if (!passwordPattern.test(password)) {
+      showAlert("Password must contain only English letters, numbers, and symbols", "error")
+      return;
+    }
 
     const loginResponse = await fetch (url, {
       method: "POST",
@@ -92,33 +104,7 @@ async function login() {
     resultDiv2.classList.remove("text-green-400", "bg-green-900", "p-3", "rounded-lg");
 
     localStorage.setItem("token", data.access_token);
-    document.getElementById("auth-section").classList.add("hidden");
-    
-
-    const user = await getCurrentUser();
-
-    if (!user) {
-      return;
-    }
-
-    const userIDS = user.user_id;
-    const storageKey = `user_${userIDS}_interests`;
-
-    const savedInterests = JSON.parse(localStorage.getItem(storageKey)) || [];
-
-    selectedInterests = savedInterests;
-
-    if (savedInterests.length === 3) {
-      document.getElementById("auth-section").classList.add("hidden");
-      document.getElementById("interests-section").classList.add("hidden");
-      document.getElementById("feed-section").classList.remove("hidden");
-      
-      fetchDevFeed();
-
-      renderSearchHistory();
-    } else {
-      document.getElementById("interests-section").classList.remove("hidden");
-    }
+    await initializeAuthenticatedSession();
 
     } catch(error) {
         console.error(error.message);
@@ -129,24 +115,17 @@ async function login() {
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user_id");
-  
-  const resultAddClass = document.getElementById("feed-section");
-  resultAddClass.classList.add("hidden");
-
-  const resultAddInterest = document.getElementById("interests-section");
-  resultAddInterest.classList.add("hidden");
-  
-  const resultAddAuth = document.getElementById("auth-section");
-  resultAddAuth.classList.remove("hidden");
-
-
-  const resultAddNav = document.getElementById("nav_username");
-  resultAddNav.textContent = "Loading user...";
-
-  const resultToken = document.getElementById("token-result");
-  resultToken.innerHTML = "";
-
   selectedInterests = [];
+  updateInterestButtonSelection();
+
+  document.getElementById("feed-section").classList.add("hidden");
+  document.getElementById("saved-section").classList.add("hidden");
+  document.getElementById("interests-section").classList.add("hidden");
+  document.getElementById("auth-section").classList.remove("hidden");
+  document.getElementById("feed-cards").innerHTML = "";
+  document.getElementById("saved-cards").innerHTML = "";
+  document.getElementById("nav_username").textContent = "Loading user...";
+  document.getElementById("token-result").innerHTML = "";
 
 }
 
@@ -222,14 +201,20 @@ async function getCurrentUser() {
 
 
     if (!response.ok) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user_id");
+      if (localStorage.getItem("token") === getToken) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_id");
+      }
       return;
     }
     
 
     console.log(data2);
     console.log(data2.user_id);
+
+    if (localStorage.getItem("token") !== getToken) {
+      return;
+    }
 
     localStorage.setItem("user_id", data2.user_id);
 
@@ -427,67 +412,76 @@ function saveInterests() {
     return;
   }
 
-  const userID = localStorage.getItem("user_id");
-  
-  console.log(userID);
+  const storageKey = getUserStorageKey("interests");
 
-  if (userID) {
-    const storageKey = `user_${userID}_interests`;
-
+  if (storageKey) {
     localStorage.setItem(storageKey, JSON.stringify(selectedInterests));
   } else {
     console.error("User ID not found in localStorage");
+    return;
   }
 
   document.getElementById("feed-section").classList.remove("hidden");
   document.getElementById("interests-section").classList.add("hidden");
   
 
-  getCurrentUser();
   fetchDevFeed();
 }
 
 let selectedInterests = [];
 
+function getUserStorageKey(name) {
+  const userId = localStorage.getItem("user_id");
+  return userId ? `user_${userId}_${name}` : null;
+}
+
+function getUserStoredArray(name) {
+  const storageKey = getUserStorageKey(name);
+  if (!storageKey) return [];
+
+  try {
+    const value = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function updateInterestButtonSelection() {
+  document.querySelectorAll(".interest-btn").forEach(button => {
+    button.classList.toggle("bg-white", selectedInterests.includes(button.textContent.trim()));
+    button.classList.toggle("text-black", selectedInterests.includes(button.textContent.trim()));
+    button.classList.toggle("-translate-y-1", selectedInterests.includes(button.textContent.trim()));
+    button.classList.toggle("shadow-lg", selectedInterests.includes(button.textContent.trim()));
+  });
+}
+
+async function initializeAuthenticatedSession() {
+  const user = await getCurrentUser();
+  if (!user) {
+    logout();
+    return;
+  }
+
+  selectedInterests = getUserStoredArray("interests");
+  updateInterestButtonSelection();
+  document.getElementById("auth-section").classList.add("hidden");
+
+  if (selectedInterests.length === 3) {
+    document.getElementById("interests-section").classList.add("hidden");
+    document.getElementById("feed-section").classList.remove("hidden");
+    await fetchDevFeed();
+    renderSearchHistory();
+  } else {
+    document.getElementById("feed-section").classList.add("hidden");
+    document.getElementById("interests-section").classList.remove("hidden");
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const interestButtons = document.querySelectorAll(".interest-btn");
-  const token = localStorage.getItem("token");
 
-  let user;
-  if (token) {
-    user = await getCurrentUser();
-  }
-
-  if (user) {
-      const userID = user.user_id;
-      const storageKey = `user_${userID}_interests`;
-
-      const savedInterests = 
-          JSON.parse(localStorage.getItem(storageKey)) || [];
-
-      selectedInterests = savedInterests;
-
-
-      if (savedInterests.length === 3) {
-        document.getElementById("auth-section").classList.add("hidden");
-        document.getElementById("feed-section").classList.remove("hidden");
-        document.getElementById("interests-section").classList.add("hidden");
-
-        fetchDevFeed();
-        renderSearchHistory();
-      }
-  }
   interestButtons.forEach(button => {
-
-    if (selectedInterests.includes(button.textContent.trim())) {
-      button.classList.add(
-        "bg-white",
-        "text-black",
-        "-translate-y-1",
-         "shadow-lg"
-      );
-    }
-
     button.addEventListener("click", () => {
       const interest = button.textContent.trim();
 
@@ -504,15 +498,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       button.classList.add("bg-white", "text-black", "-translate-y-1", "shadow-lg");
 
       console.log(selectedInterests);
-      });
     });
   });
 
+  if (localStorage.getItem("token")) {
+    await initializeAuthenticatedSession();
+  }
+});
+
 
 async function fetchDevFeed() {
-  const userID = localStorage.getItem("user_id");
-  const storageKey = `user_${userID}_interests`;
-  const interests = JSON.parse(localStorage.getItem(storageKey)) || [];
+  const interests = getUserStoredArray("interests");
+  if (interests.length === 0) return;
   const tag = interests[0].toLowerCase();
 
   const url = `https://dev.to/api/articles?tag=${tag}&per_page=10`;
@@ -523,7 +520,7 @@ async function fetchDevFeed() {
   feedCartsContainer.innerHTML = "";
 
   articles.forEach(article => {
-    const parsing = JSON.parse(localStorage.getItem("savedArticles")) || [];
+    const parsing = getUserStoredArray("savedArticles");
     console.log(parsing.includes(article.id));
     
     const isSaved = parsing.includes(article.id);
@@ -584,7 +581,9 @@ async function fetchDevFeed() {
 }
 
 function saveArticle(articleId, button) {
-  let parsing = JSON.parse(localStorage.getItem("savedArticles")) || [];
+  let parsing = getUserStoredArray("savedArticles");
+  const storageKey = getUserStorageKey("savedArticles");
+  if (!storageKey) return;
   if (parsing.includes(articleId)) {
     parsing = parsing.filter(item => item != articleId);
 
@@ -605,13 +604,13 @@ function saveArticle(articleId, button) {
     }, 150);
   }
 
-  localStorage.setItem("savedArticles", JSON.stringify(parsing));
+  localStorage.setItem(storageKey, JSON.stringify(parsing));
 
 
 }
 
 async function showSaved() {
-  const getSaved = JSON.parse(localStorage.getItem("savedArticles")) || [];
+  const getSaved = getUserStoredArray("savedArticles");
 
   console.log(getSaved);
 
@@ -699,11 +698,13 @@ function showFeed() {
 }
 
 function removeArticle(articleId, button) {
-  let removeSaved = JSON.parse(localStorage.getItem("savedArticles")) || [];
+  let removeSaved = getUserStoredArray("savedArticles");
+  const storageKey = getUserStorageKey("savedArticles");
+  if (!storageKey) return;
   removeSaved = removeSaved.filter(item => item !== articleId);
 
   localStorage.setItem(
-    "savedArticles",
+    storageKey,
     JSON.stringify(removeSaved),
   );
 
@@ -755,7 +756,7 @@ async function searchArticles() {
 
 
   articlesURL.forEach(article => {
-    const parsing = JSON.parse(localStorage.getItem("savedArticles")) || [];
+    const parsing = getUserStoredArray("savedArticles");
     console.log(parsing.includes(article.id));
     
     const isSaved = parsing.includes(article.id);
@@ -823,7 +824,9 @@ function shareArticle(url, button) {
 }
 
 function saveSearchHistory(query) {
-  let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
+  let history = getUserStoredArray("searchHistory");
+  const storageKey = getUserStorageKey("searchHistory");
+  if (!storageKey) return;
 
   history = history.filter(tag => tag != query);
 
@@ -831,14 +834,14 @@ function saveSearchHistory(query) {
 
   history = history.slice(0, 5);
 
-  localStorage.setItem("searchHistory", JSON.stringify(history));
+  localStorage.setItem(storageKey, JSON.stringify(history));
 
   renderSearchHistory();
 
 }
 
 function renderSearchHistory() {
-  const history = JSON.parse(localStorage.getItem('searchHistory')) || [];
+  const history = getUserStoredArray("searchHistory");
   const container = document.getElementById("search-history");
 
   container.innerHTML = "";
@@ -871,8 +874,15 @@ function filterByTitle() {
     } else {
       card.style.display = "none";
     }
-  })
-
-
+  });
 }
+
+function goBackToAuth() {
+  const interestHidden = document.getElementById("interests-section");
+  interestHidden.classList.add("hidden");
+
+  const authUnhidden = document.getElementById("auth-section");
+  authUnhidden.classList.remove("hidden");
+}
+
 //fetchHealth();
