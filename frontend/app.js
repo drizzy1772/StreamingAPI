@@ -512,12 +512,22 @@ async function fetchDevFeed() {
   if (interests.length === 0) return;
   const tag = interests[0].toLowerCase();
 
+  const feedCartsContainer = document.getElementById("feed-cards");
+
+  feedCartsContainer.innerHTML = `
+  <div class="col-span-2 flex justify-center items-center py-20">
+    <div class="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+  </div>
+  `;
+
   const url = `https://dev.to/api/articles?tag=${tag}&per_page=10`;
   const response = await fetch(url);
   const articles = await response.json();
 
-  const feedCartsContainer = document.getElementById("feed-cards");
   feedCartsContainer.innerHTML = "";
+
+  
+
 
   articles.forEach(article => {
     const parsing = getUserStoredArray("savedArticles");
@@ -735,6 +745,13 @@ async function searchArticles() {
 
   const tags = query.split(",").map(tag => tag.trim());
 
+  const feedCartsContainer = document.getElementById("feed-cards");
+  feedCartsContainer.innerHTML = `
+  <div class="col-span-2 flex justify-center items-center py-20">
+    <div class="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+  </div>
+  `;
+
   const responses = tags.map(tag => fetch(`https://dev.to/api/articles?tag=${tag}&per_page=10`));
 
   const responsesResolved = await Promise.all(responses);
@@ -745,15 +762,13 @@ async function searchArticles() {
   const articlesURL = articlesArrays.flat();
 
   console.log("What happened: ", articlesURL, typeof articlesURL, Array.isArray(articlesURL));
-  const feedCartsContainer = document.getElementById("feed-cards");
-  feedCartsContainer.innerHTML = "";
-
+  
   if (articlesURL.length === 0) {
-    feedCartsContainer.innerHTML = '<p class="text-gray-400 text-center col-span-2">No articles found for this tag</p>';
-    return;
-  }
+  feedCartsContainer.innerHTML = '<p class="text-gray-400 text-center col-span-2">No articles found for this tag</p>';
+  return;
+}
 
-
+  feedCartsContainer.innerHTML = "";
 
   articlesURL.forEach(article => {
     const parsing = getUserStoredArray("savedArticles");
@@ -856,26 +871,6 @@ function renderSearchHistory() {
 
 }
 
-
-function filterByTitle() {
-  console.log("filterByTitle called")
-  const filterText = document.querySelector("#title-filter").value.toLowerCase();
-  console.log("filterText", filterText);
-
-  const cards = document.querySelectorAll("#feed-cards > div");
-  console.log("cards found:", cards.length);
-
-  cards.forEach(card => {
-    const title = card.querySelector("h3").textContent.toLowerCase();
-    console.log("card title: ", title);
-
-    if (title.includes(filterText)) {
-      card.style.display = "block";
-    } else {
-      card.style.display = "none";
-    }
-  });
-}
 
 function goBackToAuth() {
   const interestHidden = document.getElementById("interests-section");
