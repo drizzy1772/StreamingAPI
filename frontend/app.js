@@ -704,6 +704,7 @@ async function showSaved() {
 
 function showFeed() {
   document.getElementById("saved-section").classList.add("hidden");
+  document.getElementById("profile-section").classList.add("hidden");
   document.getElementById("feed-section").classList.remove("hidden");
 }
 
@@ -729,6 +730,11 @@ function removeArticle(articleId, button) {
     feedSaveButton.textContent = "Save";
     feedSaveButton.classList.remove("bg-yellow-400");
     feedSaveButton.classList.add("bg-white");
+  }
+
+  if (!removeSaved.length) {
+    const profileSavedCards = document.getElementById("profile-saved-cards");
+    profileSavedCards.innerHTML = "No saved articles";
   }
 
 }
@@ -880,4 +886,99 @@ function goBackToAuth() {
   authUnhidden.classList.remove("hidden");
 }
 
-//fetchHealth();
+async function showProfile() {
+  document.getElementById("feed-section").classList.add("hidden");
+  document.getElementById("saved-section").classList.add("hidden");
+  document.getElementById("profile-section").classList.remove("hidden");
+
+
+  const user = await getCurrentUser();
+
+  if (!user) return;
+
+  document.getElementById("profile-username").textContent = user.username;
+  document.getElementById("profile-email").textContent = user.email;
+  document.getElementById("profile-joined").textContent = user.joined;
+
+
+  await loadProfileSavedArticles();
+}
+
+async function loadProfileSavedArticles() {
+    const savedArticles = getUserStoredArray("savedArticles");
+
+    const savedCards = document.getElementById('profile-saved-cards');
+
+    savedCards.innerHTML = "";
+
+
+    if (!savedArticles.length) {
+      savedCards.innerHTML = "No saved articles";
+      return;
+    }
+
+    console.log(savedArticles);
+
+
+    for (const articleId of savedArticles) {
+      const url = `https://dev.to/api/articles/${articleId}`;
+
+      const response = await fetch(url);
+
+      const article = await response.json();
+
+      console.log(article);
+      savedCards.innerHTML += `
+      <div class="article-card bg-black border border-white/10 p-6 rounded-2xl flex flex-col gap-4 hover:border-white/20 hover:-translate-y-1 transition-all duration-200">
+
+          ${article.cover_image ? `
+              <img
+                  src="${article.cover_image}"
+                  class="w-full h-48 object-cover rounded-xl"
+              >
+          ` : ''}
+
+          <h3 class="text-lg font-medium text-white">
+              ${article.title}
+          </h3>
+
+          <div class="flex flex-wrap gap-2">
+              ${(Array.isArray(article.tag_list) ? article.tag_list : article.tag_list.split(","))
+                .map(tag => `
+                <span class="text-xs px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-gray-400">
+                  #${tag.trim()}
+                </span>`
+                  ).join("")}
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>${article.user.name}</span>
+              <span>${article.reading_time_minutes} min read</span>
+          </div>
+
+          <div class="border-t border-white/10 pt-4 flex justify-start gap-3">
+
+              <a
+                  href="${article.url}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="bg-white text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-gray-200 transition w-fit">
+                  Click
+              </a>
+
+
+              <button onclick="removeArticle(${article.id}, this)"
+              class="bg-red-500 text-black text-xs font-medium px-4 py-2 rounded-md hover:bg-red-700 transition-all duration-200">
+                Remove
+              </button>
+
+          </div>
+
+      </div>
+  `;
+
+    }
+  }
+
+
+  //fetchHealth();
