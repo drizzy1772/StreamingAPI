@@ -980,5 +980,19 @@ async function loadProfileSavedArticles() {
     }
   }
 
+function changeAvatar(event) {
+  const input = event.target;
+  
+  const file = input.files[0];
 
-  //fetchHealth();
+  if (!file) {
+    return;
+  }
+
+  const getProfileAvatar = document.getElementById("profile-avatar");
+  console.log(getProfileAvatar);
+
+  const url = URL.createObjectURL(file);
+
+  getProfileAvatar.src = url;
+}
