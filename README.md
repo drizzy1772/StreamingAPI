@@ -4,6 +4,16 @@
 
 A REST API for content tracking, user management, and event analytics built with FastAPI, Kafka, Redis, and Celery.
 
+## Front-End
+<img width="1366" height="643" alt="StreamingAPI" src="https://github.com/user-attachments/assets/32b44c70-5053-4987-949f-fa081c221239" />
+
+<img width="1362" height="642" alt="secondpageStreamingAPI" src="https://github.com/user-attachments/assets/b16d73b6-c3d5-4723-839c-4c97df144499" />
+
+<img width="1366" height="645" alt="statsStreamingAPI" src="https://github.com/user-attachments/assets/1735d53c-143a-46be-8cd0-1902da838aa0" />
+
+<img width="1365" height="639" alt="profilepageStreamingAPI" src="https://github.com/user-attachments/assets/e2af983d-d187-4999-831a-1757c261cf32" />
+
+
 ## Tech Stack
 
 - **FastAPI**
