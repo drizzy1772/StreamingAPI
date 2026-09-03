@@ -5,6 +5,40 @@
 A REST API for content tracking, user management, and event analytics built with FastAPI, Kafka, Redis, and Celery.
 
 ## Front-End
+
+The project includes a responsive frontend built with Vanilla JavaScript, HTML5, and Tailwind CSS.
+
+## Front-End Technologies
+
+* **HTML5**
+* **CSS3**
+* **Vanilla JavaScript (ES6+)**
+* **Tailwind CSS**
+* **Fetch API**
+* **Async/Await**
+* **LocalStorage**
+* **Browser File API**
+* **DEV.to API**
+* **Google Fonts (Geist)**
+
+## Front-End Features
+
+* **User registration and login**
+* **JWT-based authentication flow**
+* **Personalized interests selection**
+* **Personalized article feed**
+* **Search articles by tags**
+* **Search history**
+* **Save and remove articles**
+* **Saved articles page**
+* **User profile page**
+* **Avatar preview/upload**
+* **Responsive UI**
+* **API communication with Fetch API**
+* **Persistent client-side data with LocalStorage**
+* **Production API integration with Render**
+
+## Front-End Images
 <img width="1366" height="643" alt="StreamingAPI" src="https://github.com/user-attachments/assets/32b44c70-5053-4987-949f-fa081c221239" />
 
 ## Welcome Feed
