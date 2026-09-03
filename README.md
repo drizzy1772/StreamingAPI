@@ -2,7 +2,9 @@
 [README.md](https://github.com/user-attachments/files/29341786/README.md)
 # Content Analytics API
 
-A REST API for content tracking, user management, and event analytics built with FastAPI, Kafka, Redis, and Celery.
+A full-stack content analytics platform built with FastAPI, PostgreSQL, Redis, Celery, Apache Kafka, and a Vanilla JavaScript frontend.
+
+The project provides user authentication, personalized content feeds, article search and saving, content analytics, asynchronous event processing, and a responsive web interface.
 
 ## Front-End
 
