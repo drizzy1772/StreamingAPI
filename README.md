@@ -6,9 +6,6 @@ A full-stack content analytics platform built with FastAPI, PostgreSQL, Redis, C
 
 The project provides user authentication, personalized content feeds, article search and saving, content analytics, asynchronous event processing, and a responsive web interface.
 
-## Front-End
-
-The project includes a responsive frontend built with Vanilla JavaScript, HTML5, and Tailwind CSS.
 
 ## Front-End Technologies
 
