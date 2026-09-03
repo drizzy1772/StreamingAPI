@@ -197,30 +197,36 @@ docker compose exec web pytest
 ## Project Structure
 
 ```
-content-analytics-api/
+StreamingAPI/
 ├── app/
-│   ├── main.py          # Routes & app entry point
-│   ├── models.py        # User, Content, ActionLog
-│   ├── database.py      # DB connection & session
-│   ├── auth.py          # JWT & bcrypt
-│   ├── celery_app.py    # Background flush task
-│   └── logger.py        # JSON structured logger
+│   ├── main.py              # FastAPI application & routes
+│   ├── models.py            # Database models
+│   ├── database.py          # PostgreSQL connection & sessions
+│   ├── auth.py              # JWT authentication & password hashing
+│   ├── celery_app.py        # Celery background tasks
+│   └── logger.py            # JSON structured logging
 ├── tests/
-│   ├── conftest.py
-│   ├── test_auth.py
-│   ├── test_analytics.py
-│   └── test_feed.py
+│   ├── conftest.py          # Test configuration
+│   ├── test_auth.py         # Authentication tests
+│   ├── test_analytics.py    # Analytics tests
+│   └── test_feed.py         # Feed tests
 ├── alembic/
-│   ├── versions/
-│   └── env.py
-├── .env
+│   ├── versions/            # Database migrations
+│   └── env.py               # Alembic configuration
+├── frontend/
+│   ├── index.html           # Front-end UI
+│   ├── app.js               # Front-end logic & API requests
+│   └── avatar.jpg           # Default avatar
+├── .env                     # Environment variables
+├── .env.example             # Environment variables template
 ├── .gitignore
 ├── alembic.ini
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
-├── seed.py
-└── tests.db
+├── seed.py                  # Database seed data
+├── tests.db
+└── README.md
 ```
 
 
